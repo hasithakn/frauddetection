@@ -4,9 +4,12 @@ import org.apache.solr.client.solrj.beans.Field;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.solr.core.mapping.SolrDocument;
 
+import java.util.Date;
+
 
 @SolrDocument(solrCoreName = "experiment4")
 public class SolrEntity {
+
     @Field
     private String app_id;
 
@@ -18,11 +21,10 @@ public class SolrEntity {
     private String correlationId;
 
     @Field
-    private String datetime;
+    private Date datetime;
 
     @Field
     private int termCount;
-
 
     public String getApp_id() {
         return app_id;
@@ -48,11 +50,11 @@ public class SolrEntity {
         this.correlationId = correlationId;
     }
 
-    public String getDatetime() {
+    public Date getDatetime() {
         return datetime;
     }
 
-    public void setDatetime(String datetime) {
+    public void setDatetime(Date datetime) {
         this.datetime = datetime;
     }
 

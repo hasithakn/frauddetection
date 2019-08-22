@@ -15,14 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,20 +80,23 @@ public class Indexer {
             );
             LOGGER.info("received vs no of Total elements : " + allByReceiveDateBetween.getContent().size() + "/" + allByReceiveDateBetween.getTotalElements());
 
-            List<SolrEntity> solrEntities = allByReceiveDateBetween.stream()
-                    .map(EntitiyConverter::sqlToSolrEntity)
-                    .collect(Collectors.toList());
+            if (allByReceiveDateBetween.getContent().size() > 0) {
+                List<SolrEntity> solrEntities = allByReceiveDateBetween.stream()
+                        .map(EntitiyConverter::sqlToSolrEntity)
+                        .collect(Collectors.toList());
 
-            LOGGER.info("started saving to solr : " + solrEntities.size());
-            solrEntityRepository.saveAll(solrEntities);
-            LOGGER.info("saved to solr : " + solrEntities.size());
+                LOGGER.info("started saving to solr : " + solrEntities.size());
+                solrEntityRepository.saveAll(solrEntities);
+                LOGGER.info("saved to solr : " + solrEntities.size());
 
-            solrIndexDetails.setCurrentDoc(((page + 1) * batch));
-            solrIndexDetailsRepository.save(solrIndexDetails);
-            LOGGER.info("solrIndexDetails row updated : " + solrIndexDetails.getCurrentDoc());
+                solrIndexDetails.setCurrentDoc(((page + 1) * batch));
+                solrIndexDetailsRepository.save(solrIndexDetails);
+                LOGGER.info("solrIndexDetails row updated : " + solrIndexDetails.getCurrentDoc());
 
-            page++;
-
+                page++;
+            }else {
+                LOGGER.info("No records on this batch : ");
+            }
         } while (allByReceiveDateBetween != null && !allByReceiveDateBetween.isLast());
         LOGGER.info("finished indexing to solr : ");
 

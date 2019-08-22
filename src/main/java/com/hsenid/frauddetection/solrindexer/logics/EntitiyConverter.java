@@ -28,7 +28,7 @@ public class EntitiyConverter {
             solrEntity.setSms(sms);
 
             solrEntity.setCorrelationId(messageHistory.getCorrelationId());
-            solrEntity.setDatetime(filterLogic.timestampToISO(receive_date));
+            solrEntity.setDatetime(receive_date);
             solrEntity.setTermCount(getTermsCount(messageHistory.getMessage()));
             return solrEntity;
         } else {
