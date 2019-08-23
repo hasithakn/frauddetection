@@ -9,8 +9,6 @@ import com.hsenid.frauddetection.solrsearch.functions.TimeFunctions;
 import com.hsenid.frauddetection.solrsearch.observer.DBObserver;
 import com.hsenid.frauddetection.solrsearch.subject.Subject;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +21,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +42,8 @@ public class SolrSearch {
     @Value("${solrsearch.batch.size}")
     private int batch;
 
+    @Value("${solrsearch.noOfThreads}")
+    private int noOfThreads;
 
     private static Subject subject = new Subject();
     private static ArrayList<String> appIdFilter = new ArrayList<>();
@@ -74,51 +74,67 @@ public class SolrSearch {
             LOGGER.error("File not found");
         }
 
-        long numFound = 0;
+        List<SolrEntity> solrEntities = getSolrEntitiesByDay("2019-03-02T20:00:00Z");
+        Thread[] ts = getThreads(solrEntities, noOfThreads);
+
+        for (int i = 0; i < noOfThreads; i++) {
+            ts[i].start();
+            LOGGER.info("Thread : " + i + " started");
+        }
+
+        for (int i = 0; i < noOfThreads; i++) {
+            ts[i].join();
+        }
+
+        LOGGER.info("finished search day : "+ detailedDuplicates.size());
+//        subject.setDBRows(detailedDuplicates);
+    }
+
+    private Thread[] getThreads(List<SolrEntity> solrEntities, int noOfThreads) {
+
+        LOGGER.info("no of Threads: " + (noOfThreads));
+        int numFound = solrEntities.size();
+        Thread[] ts = new Thread[noOfThreads];
+        int docSlise = numFound / noOfThreads;
+        int mod = numFound - (docSlise * noOfThreads);
+
+        for (int i = 0; i < noOfThreads; i++) {
+            final int temp = i;
+            List<SolrEntity> solrEntities1;
+            if (i != noOfThreads - 1) {
+                solrEntities1 = solrEntities.subList((temp * docSlise), ((temp + 1) * docSlise) + 1);
+            } else {
+                solrEntities1 = solrEntities.subList((temp * docSlise), ((temp + 1) * docSlise) + mod);
+            }
+            System.out.println();
+            ts[i] = new Thread(() -> processData(solrEntities1));
+            LOGGER.info("Thread : " + temp + " , with list of size : " + (solrEntities1.size()));
+        }
+        return ts;
+    }
+
+    private List<SolrEntity> getSolrEntitiesByDay(String date) {
         int start = 0;
-
-        List<List<SolrEntity>> solrEntities = new ArrayList<List<SolrEntity>>();
-
+        List<SolrEntity> solrEntities = new LinkedList<>();
         Page<SolrEntity> allByDatetimeBetween;
         do {
             allByDatetimeBetween = solrEntityRepository.findAllByDatetimeBetween(
-                    "2019-03-02T20:00:00Z",
+                    date,
                     "NOW",
                     PageRequest.of(start, batch));
             LOGGER.info("page " + start + " response done ");
             if (start <= 0) {
-                numFound = allByDatetimeBetween.getTotalElements();
                 LOGGER.info("total elements found " + allByDatetimeBetween.getTotalElements());
             }
             if (allByDatetimeBetween.getContent().size() > 0) {
-                solrEntities.add(allByDatetimeBetween.getContent());
+                allByDatetimeBetween.getContent().forEach(solrEntity -> solrEntities.add(solrEntity));
                 start++;
             } else {
                 LOGGER.info("No records on this batch : ");
             }
         } while (allByDatetimeBetween != null && !allByDatetimeBetween.isLast());
         LOGGER.info("solrEntitiesList is updated with solr docs on day : ");
-
-        int noOfTimes = (int) (numFound / batch);
-        LOGGER.info("no of Threads: " + (noOfTimes + 1));
-
-        Thread[] ts = new Thread[noOfTimes + 1];
-
-        for (int i = 0; i < noOfTimes + 1; i++) {
-            final int temp = i;
-            ts[i] = new Thread(() -> processData(solrEntities.get(temp)));
-        }
-
-        for (int i = 0; i < noOfTimes + 1; i++) {
-            ts[i].start();
-            LOGGER.info("Thread : " + i + " started");
-        }
-
-        for (int i = 0; i < noOfTimes + 1; i++) {
-            ts[i].join();
-        }
-        LOGGER.info("finished search day : ");
-//        subject.setDBRows(detailedDuplicates);
+        return solrEntities;
     }
 
 
@@ -170,7 +186,7 @@ public class SolrSearch {
                 detailedDuplicates.add(detailedDuplicate);
                 LOGGER.info(detailedDuplicate.getCorrelationId() + " -- " + d1 + " : " + d7 + " : " + d30);
             } catch (Exception e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error(e.getStackTrace()[0].toString());
             }
         });
     }
