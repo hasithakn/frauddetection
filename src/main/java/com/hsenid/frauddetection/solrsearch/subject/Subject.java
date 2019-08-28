@@ -3,10 +3,12 @@ package com.hsenid.frauddetection.solrsearch.subject;
 
 import com.hsenid.frauddetection.solrsearch.entity.DetailedDuplicate;
 import com.hsenid.frauddetection.solrsearch.observer.Observer;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class Subject {
     private ArrayList<Observer> observers = new ArrayList<>();
     private List<DetailedDuplicate> dbRows = new ArrayList<>();

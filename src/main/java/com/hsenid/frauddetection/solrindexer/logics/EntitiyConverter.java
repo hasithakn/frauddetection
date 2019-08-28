@@ -2,12 +2,14 @@ package com.hsenid.frauddetection.solrindexer.logics;
 
 import com.hsenid.frauddetection.solrindexer.entity.MessageHistory;
 import com.hsenid.frauddetection.solrindexer.entity.SolrEntity;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.util.StringTokenizer;
 
 public class EntitiyConverter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EntitiyConverter.class);
 
     public EntitiyConverter() {
     }
@@ -32,6 +34,7 @@ public class EntitiyConverter {
             solrEntity.setTermCount(getTermsCount(messageHistory.getMessage()));
             return solrEntity;
         } else {
+            LOGGER.info("null return on sql to solr entity");
             return null;
         }
     }

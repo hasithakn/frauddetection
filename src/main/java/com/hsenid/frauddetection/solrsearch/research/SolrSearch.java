@@ -18,8 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.FileNotFoundException;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +49,7 @@ public class SolrSearch {
     private int noOfThreads;
 
     private static Subject subject = new Subject();
+
     private static ArrayList<String> appIdFilter = new ArrayList<>();
     private static ArrayList<DetailedDuplicate> detailedDuplicates = new ArrayList<>();
 
@@ -55,26 +59,37 @@ public class SolrSearch {
     @Autowired
     private SolrEntityRepository solrEntityRepository;
 
-    private static final String DATE_RANGE_TO_SEARCH =
-            "datetime: [2019-03-01T00:00:00Z TO 2019-03-02T00:00:00Z]";
+    private static String D1 = "";
+    private static String D7 = "";
+    private static String D30 = "";
 
-    private static final String D1 = "2019-03-01T00:00:00Z";
-    private static final String D7 = "2019-02-23T00:00:00Z";
-    private static final String D30 = "2019-01-31T00:00:00Z";
+    public void run(Timestamp timestamp) throws InterruptedException {
 
-
-    @PostConstruct
-    public void run() throws InterruptedException {
+        //timestamp = day of msgs to process
 
         LOGGER.info("solr searching start");
         new DBObserver(subject);
+
         try {
             appIdFilter = FileIO.getAppids(APP_ID_PATH);
         } catch (FileNotFoundException e) {
             LOGGER.error("File not found");
         }
 
-        List<SolrEntity> solrEntities = getSolrEntitiesByDay("2019-03-02T20:00:00Z");
+        Timestamp timestampPlusOne = Timestamp.valueOf(
+                timestamp.toLocalDateTime()
+                        .toLocalDate()
+                        .plusDays(1)
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00"
+        );
+
+        setDateVariables(timestamp);
+
+        List<SolrEntity> solrEntities = getSolrEntitiesByDateRange(
+                TimeFunctions.timestampToISOWithOutUTC(timestamp),
+                TimeFunctions.timestampToISOWithOutUTC(timestampPlusOne)
+        );
+
         Thread[] ts = getThreads(solrEntities, noOfThreads);
 
         for (int i = 0; i < noOfThreads; i++) {
@@ -86,8 +101,25 @@ public class SolrSearch {
             ts[i].join();
         }
 
-        LOGGER.info("finished search day : "+ detailedDuplicates.size());
-//        subject.setDBRows(detailedDuplicates);
+        LOGGER.info("finished search day : " + detailedDuplicates.size());
+        subject.setDBRows(detailedDuplicates);
+    }
+
+    private void setDateVariables(Timestamp timestamp) {
+        LocalDate temp = timestamp.toLocalDateTime().toLocalDate();
+        Timestamp tempTimestamp = Timestamp.valueOf(temp.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00");
+        D1 = TimeFunctions.timestampToISOWithOutUTC(tempTimestamp);
+        LOGGER.info("D1 is set to : " + D1);
+
+        temp = timestamp.toLocalDateTime().toLocalDate().minusDays(7);
+        tempTimestamp = Timestamp.valueOf(temp.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00");
+        D7 = TimeFunctions.timestampToISOWithOutUTC(tempTimestamp);
+        LOGGER.info("D7 is set to : " + D7);
+
+        temp = timestamp.toLocalDateTime().toLocalDate().minusDays(30);
+        tempTimestamp = Timestamp.valueOf(temp.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00");
+        D30 = TimeFunctions.timestampToISOWithOutUTC(tempTimestamp);
+        LOGGER.info("D30 is set to : " + D30);
     }
 
     private Thread[] getThreads(List<SolrEntity> solrEntities, int noOfThreads) {
@@ -113,14 +145,14 @@ public class SolrSearch {
         return ts;
     }
 
-    private List<SolrEntity> getSolrEntitiesByDay(String date) {
+    private List<SolrEntity> getSolrEntitiesByDateRange(String dateFrom, String dateTo) {
         int start = 0;
         List<SolrEntity> solrEntities = new LinkedList<>();
         Page<SolrEntity> allByDatetimeBetween;
         do {
             allByDatetimeBetween = solrEntityRepository.findAllByDatetimeBetween(
-                    date,
-                    "NOW",
+                    dateFrom,
+                    dateTo,
                     PageRequest.of(start, batch));
             LOGGER.info("page " + start + " response done ");
             if (start <= 0) {
@@ -136,7 +168,6 @@ public class SolrSearch {
         LOGGER.info("solrEntitiesList is updated with solr docs on day : ");
         return solrEntities;
     }
-
 
     private void processData(List<SolrEntity> results) {
 
@@ -182,6 +213,8 @@ public class SolrSearch {
                 detailedDuplicate.setD1(d1);
                 detailedDuplicate.setD7(d7);
                 detailedDuplicate.setD30(d30);
+                Date date = new Date(a.getDatetime().getTime());
+                detailedDuplicate.setDate(date);
                 detailedDuplicate.setDetails(details.toString());
                 detailedDuplicates.add(detailedDuplicate);
                 LOGGER.info(detailedDuplicate.getCorrelationId() + " -- " + d1 + " : " + d7 + " : " + d30);

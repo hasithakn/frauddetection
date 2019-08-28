@@ -5,6 +5,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.sql.Date;
 
 @Entity
 @Table(schema = "DetailedDuplicate")
@@ -28,6 +29,17 @@ public class DetailedDuplicate {
 
     @Column(name = "details")
     private String Details;
+
+    @Column(name = "date")
+    private Date Date;
+
+    public Date getDate() {
+        return Date;
+    }
+
+    public void setDate(Date date) {
+        Date = date;
+    }
 
     public String getAppID() {
         return appID;

@@ -1,17 +1,16 @@
 package com.hsenid.frauddetection.solrsearch.observer;
 
-import com.hsenid.frauddetection.solrsearch.subject.Subject;
 import com.hsenid.frauddetection.solrsearch.repository.DetailedDuplicateRepository;
+import com.hsenid.frauddetection.solrsearch.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 public class DBObserver extends Observer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DBObserver.class);
 
-//    @Autowired
+    @Autowired
     public DetailedDuplicateRepository detailedDuplicateRepository;
 
     public DBObserver(Subject subject) {

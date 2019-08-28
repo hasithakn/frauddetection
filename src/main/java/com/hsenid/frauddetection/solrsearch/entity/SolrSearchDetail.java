@@ -1,12 +1,14 @@
-package com.hsenid.frauddetection.solrindexer.entity;
+package com.hsenid.frauddetection.solrsearch.entity;
 
+
+import com.hsenid.frauddetection.solrindexer.entity.Status;
 
 import javax.persistence.*;
 import java.sql.Date;
 
 @Entity
-@Table(schema = "SolrIndexDetails")
-public class SolrIndexDetails {
+@Table(schema = "SolrSearchDetail")
+public class SolrSearchDetail {
 
     @Id
     @GeneratedValue
@@ -23,25 +25,19 @@ public class SolrIndexDetails {
     @Column(name = "currentDoc")
     private int currentDoc;
 
-    public SolrIndexDetails() {
+    public SolrSearchDetail() {
     }
 
-    public SolrIndexDetails(Date date, Status status, int currentDoc) {
+    public SolrSearchDetail(Date date, Status status, int currentDoc) {
         this.date = date;
         this.status = status;
         this.currentDoc = currentDoc;
     }
 
-    public enum Status {
-        PENDING,
-        STARTED,
-        FINISHED,
-    }
-
 
     @Override
     public String toString() {
-        return "SolrIndexDetails{" +
+        return "SolrIndexDetail{" +
                 "id=" + id +
                 ", date=" + date +
                 ", status=" + status +

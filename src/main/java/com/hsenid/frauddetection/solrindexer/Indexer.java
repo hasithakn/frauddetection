@@ -2,11 +2,12 @@ package com.hsenid.frauddetection.solrindexer;
 
 import com.hsenid.frauddetection.solrindexer.entity.MessageHistory;
 import com.hsenid.frauddetection.solrindexer.entity.SolrEntity;
-import com.hsenid.frauddetection.solrindexer.entity.SolrIndexDetails;
+import com.hsenid.frauddetection.solrindexer.entity.SolrIndexDetail;
+import com.hsenid.frauddetection.solrindexer.entity.Status;
 import com.hsenid.frauddetection.solrindexer.logics.EntitiyConverter;
 import com.hsenid.frauddetection.solrindexer.repository.MessageHistoryRepository;
 import com.hsenid.frauddetection.solrindexer.repository.SolrEntityRepository;
-import com.hsenid.frauddetection.solrindexer.repository.SolrIndexDetailsRepository;
+import com.hsenid.frauddetection.solrindexer.repository.SolrIndexDetailRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,41 +27,28 @@ public class Indexer {
 
     private final SolrEntityRepository solrEntityRepository;
     private final MessageHistoryRepository messageHistoryRepository;
-    private final SolrIndexDetailsRepository solrIndexDetailsRepository;
+    private final SolrIndexDetailRepository solrIndexDetailRepository;
 
     @Value(value = "${solrindexer.batch.size}")
     private int batch;
 
     @Autowired
-    public Indexer(SolrEntityRepository solrEntityRepository, MessageHistoryRepository messageHistoryRepository, SolrIndexDetailsRepository solrIndexDetailsRepository) {
+    public Indexer(SolrEntityRepository solrEntityRepository, MessageHistoryRepository messageHistoryRepository, SolrIndexDetailRepository solrIndexDetailRepository) {
         this.solrEntityRepository = solrEntityRepository;
         this.messageHistoryRepository = messageHistoryRepository;
-        this.solrIndexDetailsRepository = solrIndexDetailsRepository;
+        this.solrIndexDetailRepository = solrIndexDetailRepository;
     }
 
-    public void readAndIndex(Timestamp timestamp) {
+    public void readAndIndex(Timestamp timestamp, SolrIndexDetail solrIndexDetail) {
+
         LOGGER.info("batch size :" + batch);
 
         int page = 0;
-
-        Iterator<SolrIndexDetails> iterator = solrIndexDetailsRepository.findAllByDateOrderByIdDesc(new Date(timestamp.getTime())).iterator();
-        SolrIndexDetails solrIndexDetails;
-        if (iterator.hasNext()) {
-            solrIndexDetails = iterator.next();
-            LOGGER.info("found solrIndexDetails : previously processed " + solrIndexDetails.getStatus() + " : currentDoc : " + solrIndexDetails.getCurrentDoc());
-            if (solrIndexDetails.getStatus() == SolrIndexDetails.Status.FINISHED) {
-                LOGGER.info("Reading and indexing day : " + timestamp.toLocalDateTime() + " Already finished ");
-                return;
-            }
-            int currentDoc = solrIndexDetails.getCurrentDoc();
-            page = currentDoc / batch;
-            solrIndexDetails.setStatus(SolrIndexDetails.Status.STARTED);
-            solrIndexDetailsRepository.save(solrIndexDetails);
-            LOGGER.info("solrIndexDetails row updated to STARTED");
-        } else {
-            solrIndexDetails = solrIndexDetailsRepository.save(new SolrIndexDetails(new Date(timestamp.getTime()), SolrIndexDetails.Status.STARTED, 0));
-            LOGGER.info("solrIndexDetails could not found, thus created new with status STARTED , docCount 0");
-        }
+        int currentDoc = solrIndexDetail.getCurrentDoc();
+        page = currentDoc / batch;
+        solrIndexDetail.setStatus(Status.STARTED);
+        solrIndexDetailRepository.save(solrIndexDetail);
+        LOGGER.info("solrIndexDetail row updated to STARTED");
 
         Calendar cal = Calendar.getInstance();
         cal.setTime(timestamp);
@@ -89,19 +75,19 @@ public class Indexer {
                 solrEntityRepository.saveAll(solrEntities);
                 LOGGER.info("saved to solr : " + solrEntities.size());
 
-                solrIndexDetails.setCurrentDoc(((page + 1) * batch));
-                solrIndexDetailsRepository.save(solrIndexDetails);
-                LOGGER.info("solrIndexDetails row updated : " + solrIndexDetails.getCurrentDoc());
+                solrIndexDetail.setCurrentDoc(((page + 1) * batch));
+                SolrIndexDetail save = solrIndexDetailRepository.save(solrIndexDetail);
+                LOGGER.info("solrIndexDetail row updated : " + solrIndexDetail.getCurrentDoc());
 
                 page++;
-            }else {
+            } else {
                 LOGGER.info("No records on this batch : ");
             }
         } while (allByReceiveDateBetween != null && !allByReceiveDateBetween.isLast());
         LOGGER.info("finished indexing to solr : ");
 
-        solrIndexDetails.setStatus(SolrIndexDetails.Status.FINISHED);
-        solrIndexDetailsRepository.save(solrIndexDetails);
-        LOGGER.info("solrIndexDetails row updated : FINISHED " + solrIndexDetails.getCurrentDoc());
+        solrIndexDetail.setStatus(Status.FINISHED);
+        solrIndexDetailRepository.save(solrIndexDetail);
+        LOGGER.info("solrIndexDetail row updated : FINISHED " + solrIndexDetail.getCurrentDoc());
     }
 }

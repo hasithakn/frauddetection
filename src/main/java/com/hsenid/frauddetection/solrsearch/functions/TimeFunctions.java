@@ -24,6 +24,21 @@ public class TimeFunctions {
         }
     }
 
+    public static String timestampToISOWithOutUTC(Date date) {
+        try {
+            String pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+            String isoTS = sdf.format(date);
+            return isoTS;
+        } catch (Exception e) {
+            if (date != null) {
+                return date.toString();
+            } else {
+                return "";
+            }
+        }
+    }
+
     public static String getFilterDate(String timeFilter1, String timeFilter2, String timeTemp) {
         StringBuffer temp = new StringBuffer();
         temp.append("datetime: [");

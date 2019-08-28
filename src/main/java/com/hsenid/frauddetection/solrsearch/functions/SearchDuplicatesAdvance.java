@@ -24,7 +24,7 @@ public class SearchDuplicatesAdvance {
     }
 
     public QueryResponse searchD101(SolrEntity a, String datetime, String core) {
-        datetime = datetimeAndAppIdFilter(a, datetime);
+        datetime = datetimeAndAppIdTermCountFilter(a, datetime);
         String q = queryFromSolrDoc(a);
         try {
 //            LOGGER.info(q);
@@ -37,7 +37,7 @@ public class SearchDuplicatesAdvance {
     }
 
     public QueryResponse searchD102(SolrEntity a, String datetime, String core) {
-        datetime = datetimeAndAppIdFilter(a, datetime);
+        datetime = datetimeAndAppIdTermCountFilter(a, datetime);
         String q = queryFromSolrDoc(a);
         try {
             return searchLogics.searchDateRangeGetAll(q, datetime, "smsNoPunctuations", core);
