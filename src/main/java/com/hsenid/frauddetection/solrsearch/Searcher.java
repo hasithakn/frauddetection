@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.sql.Date;
-import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,34 +41,34 @@ public class Searcher {
                     try {
                         Iterator<SolrSearchDetail> solrSearchDetails = solrSearchDetailRepository.findAllByDateOrderByIdDesc(e.getDate()).iterator();
                         if (solrSearchDetails.hasNext()) {
-                            LOGGER.info("search record found on solr search details day : " + e.getDate().toLocalDate().toString());
+                            LOGGER.info("search record found on solr search details day : " + e.getDate().toString());
                             SolrSearchDetail next = solrSearchDetails.next();
 
-                            LOGGER.info("processing day : " + next.getDate().toLocalDate().toString());
+                            LOGGER.info("processing day : " + next.getDate().toString());
                             LOGGER.info("current doc : " + next.getCurrentDoc());
-                            solrSearch.run(Timestamp.valueOf(e.getDate().toLocalDate().toString() + " 00:00:00"));
+                            LocalDateTime localDateTime = e.getDate().atStartOfDay();
+                            solrSearch.run(localDateTime);
 
                             next.setStatus(Status.FINISHED);
                             solrSearchDetailRepository.save(next);
                             LOGGER.info("Finished status saved ");
-
                         } else {
-                            LOGGER.info("NO record found on solr search details day : " + e.getDate().toLocalDate().toString());
+                            LOGGER.info("NO record found on solr search details day : " + e.getDate().toString());
                             SolrSearchDetail next = new SolrSearchDetail();
                             next.setStatus(Status.STARTED);
                             next.setDate(e.getDate());
                             next.setCurrentDoc(0);
                             next = solrSearchDetailRepository.save(next);
-                            LOGGER.info("created new record on solr search details day : " + e.getDate().toLocalDate().toString() + " status Started");
+                            LOGGER.info("created new record on solr search details day : " + e.getDate().toString() + " status Started");
 
-                            LOGGER.info("processing day : " + next.getDate().toLocalDate().toString());
+                            LOGGER.info("processing day : " + next.getDate().toString());
                             LOGGER.info("current doc : " + next.getCurrentDoc());
-                            solrSearch.run(Timestamp.valueOf(e.getDate().toLocalDate().toString() + " 00:00:00"));
+                            LocalDateTime localDateTime = e.getDate().atStartOfDay();
+                            solrSearch.run(localDateTime);
 
                             next.setStatus(Status.FINISHED);
                             solrSearchDetailRepository.save(next);
                             LOGGER.info("Finished status saved ");
-
                         }
                     } catch (InterruptedException e1) {
                         LOGGER.error(e1.getMessage());
@@ -80,7 +79,7 @@ public class Searcher {
 
     private List<SolrIndexDetail> getUnfinishedListToSearch() {
         List<SolrIndexDetail> finishedIndexList = solrIndexDetailRepository.findAllByStatus(Status.FINISHED);
-        List<Date> finishedSearchDates = solrSearchDetailRepository.findAllByStatus(Status.FINISHED)
+        List<LocalDate> finishedSearchDates = solrSearchDetailRepository.findAllByStatus(Status.FINISHED)
                 .stream()
                 .map(e -> e.getDate())
                 .collect(Collectors.toList());

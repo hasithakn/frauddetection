@@ -4,6 +4,8 @@ import org.apache.solr.client.solrj.beans.Field;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.solr.core.mapping.SolrDocument;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 
@@ -21,7 +23,7 @@ public class SolrEntity {
     private String correlationId;
 
     @Field
-    private Date datetime;
+    private Instant datetime;
 
     @Field
     private int termCount;
@@ -50,11 +52,11 @@ public class SolrEntity {
         this.correlationId = correlationId;
     }
 
-    public Date getDatetime() {
+    public Instant getDatetime() {
         return datetime;
     }
 
-    public void setDatetime(Date datetime) {
+    public void setDatetime(Instant datetime) {
         this.datetime = datetime;
     }
 

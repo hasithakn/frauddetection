@@ -5,11 +5,12 @@ import com.hsenid.frauddetection.solrsearch.entity.SolrSearchDetail;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
 public interface SolrSearchDetailRepository extends PagingAndSortingRepository<SolrSearchDetail, Integer>, QueryByExampleExecutor<SolrSearchDetail> {
-    List<SolrSearchDetail> findAllByDateOrderByIdDesc(Date date);
+    List<SolrSearchDetail> findAllByDateOrderByIdDesc(LocalDate date);
 
     List<SolrSearchDetail> findAllByStatusNot(Status status);
 

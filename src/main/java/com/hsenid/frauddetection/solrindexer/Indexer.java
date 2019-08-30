@@ -16,8 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +38,7 @@ public class Indexer {
         this.solrIndexDetailRepository = solrIndexDetailRepository;
     }
 
-    public void readAndIndex(Timestamp timestamp, SolrIndexDetail solrIndexDetail) {
+    public void readAndIndex(LocalDateTime localDateTime, SolrIndexDetail solrIndexDetail) {
 
         LOGGER.info("batch size :" + batch);
 
@@ -50,18 +49,15 @@ public class Indexer {
         solrIndexDetailRepository.save(solrIndexDetail);
         LOGGER.info("solrIndexDetail row updated to STARTED");
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(timestamp);
-        cal.add(Calendar.DAY_OF_WEEK, 1);
-        Timestamp timestampPlusDay = new Timestamp(cal.getTime().getTime());
-        LOGGER.info("Reading and indexing day : " + timestamp.toLocalDateTime() + " to " + timestampPlusDay.toLocalDateTime());
+        LocalDateTime localDateTimePlus1 = localDateTime.plusDays(1);
+        LOGGER.info("Reading and indexing day : " + localDateTime + " to " + localDateTimePlus1);
 
         Page<MessageHistory> allByReceiveDateBetween;
         do {
             LOGGER.info("Started reading page : " + page);
-            allByReceiveDateBetween = messageHistoryRepository.findAllByReceiveDateBetween(
-                    timestamp,
-                    timestampPlusDay,
+            allByReceiveDateBetween = messageHistoryRepository.findAllByReceiveDateBetweenOrderByReceiveDate(
+                    localDateTime,
+                    localDateTimePlus1,
                     PageRequest.of(page, batch)
             );
             LOGGER.info("received vs no of Total elements : " + allByReceiveDateBetween.getContent().size() + "/" + allByReceiveDateBetween.getTotalElements());
@@ -76,7 +72,7 @@ public class Indexer {
                 LOGGER.info("saved to solr : " + solrEntities.size());
 
                 solrIndexDetail.setCurrentDoc(((page + 1) * batch));
-                SolrIndexDetail save = solrIndexDetailRepository.save(solrIndexDetail);
+                solrIndexDetail = solrIndexDetailRepository.save(solrIndexDetail);
                 LOGGER.info("solrIndexDetail row updated : " + solrIndexDetail.getCurrentDoc());
 
                 page++;

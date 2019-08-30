@@ -8,14 +8,10 @@ import org.springframework.stereotype.Repository;
 
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Repository
 public interface MessageHistoryRepository extends PagingAndSortingRepository<MessageHistory, String> {
-    Page<MessageHistory> findAllByMessage(String appID, Pageable pageable);
-
-    Page<MessageHistory> findAllByAppId(String appID, Pageable pageable);
-
-    Page<MessageHistory> findAllByReceiveDate(Timestamp time, Pageable pageable);
-
-    Page<MessageHistory> findAllByReceiveDateBetween(Timestamp time1, Timestamp time2, Pageable pageable);
+    Page<MessageHistory> findAllByReceiveDateBetweenOrderByReceiveDate(LocalDateTime time1, LocalDateTime time2, Pageable pageable);
 }

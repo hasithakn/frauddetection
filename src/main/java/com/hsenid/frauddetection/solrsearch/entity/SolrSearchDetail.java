@@ -5,6 +5,7 @@ import com.hsenid.frauddetection.solrindexer.entity.Status;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(schema = "SolrSearchDetail")
@@ -16,7 +17,7 @@ public class SolrSearchDetail {
     private Long id;
 
     @Column(name = "date")
-    private Date date;
+    private LocalDate date;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -28,7 +29,7 @@ public class SolrSearchDetail {
     public SolrSearchDetail() {
     }
 
-    public SolrSearchDetail(Date date, Status status, int currentDoc) {
+    public SolrSearchDetail(LocalDate date, Status status, int currentDoc) {
         this.date = date;
         this.status = status;
         this.currentDoc = currentDoc;
@@ -53,11 +54,11 @@ public class SolrSearchDetail {
         this.id = id;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 

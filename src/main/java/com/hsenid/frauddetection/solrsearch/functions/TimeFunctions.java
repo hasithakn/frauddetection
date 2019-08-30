@@ -4,6 +4,7 @@ import com.hsenid.frauddetection.solrindexer.entity.SolrEntity;
 import org.apache.solr.common.SolrDocument;
 
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -23,6 +24,25 @@ public class TimeFunctions {
             }
         }
     }
+
+//    public static String ISODateStringToLocalDate(String date) {
+//        try {
+//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+//            LocalDateTime t = LocalDateTime.parse(date, formatter);
+//            Instant instant = t.toInstant(ZoneOffset.UTC);
+//            Date from = Date.from(instant);
+////            int year = t.getYear();
+////            int month= t.getMonthValue();
+////            int day = t.getDayOfMonth();
+////            int hour = t.getHour();
+////            int min = t.getMinute();
+////            int sec = t.getSecond();
+////            Date date1 = new Date(Date.UTC(year,month,day,hour,min,sec));
+//            return "";
+//        } catch (Exception e) {
+//            return "";
+//        }
+//    }
 
     public static String timestampToISOWithOutUTC(Date date) {
         try {
@@ -55,12 +75,11 @@ public class TimeFunctions {
     }
 
     public static String addTimeFilterDateXTillDocTime(SolrEntity entrie, String x) {
-        String timeTemp = timestampToISO(entrie.getDatetime());
         StringBuffer temp = new StringBuffer();
         temp.append("datetime: [");
         temp.append(x);
         temp.append(" TO ");
-        temp.append(timeTemp + " ]");
+        temp.append(DateTimeFormatter.ISO_INSTANT.format(entrie.getDatetime()) + " ]");
         return temp.toString();
     }
 

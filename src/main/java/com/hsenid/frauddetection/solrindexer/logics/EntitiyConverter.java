@@ -2,10 +2,14 @@ package com.hsenid.frauddetection.solrindexer.logics;
 
 import com.hsenid.frauddetection.solrindexer.entity.MessageHistory;
 import com.hsenid.frauddetection.solrindexer.entity.SolrEntity;
+import com.hsenid.frauddetection.solrsearch.functions.TimeFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.StringTokenizer;
 
 public class EntitiyConverter {
@@ -15,7 +19,7 @@ public class EntitiyConverter {
     }
 
     public static SolrEntity sqlToSolrEntity(MessageHistory messageHistory) {
-        Timestamp receive_date = messageHistory.getReceiveDate();
+        Instant receive_date = messageHistory.getReceiveDate().atZone(ZoneId.of("Z")).toInstant();
         FilterLogic filterLogic = new FilterLogic();
         if (receive_date != null) {
             SolrEntity solrEntity = new SolrEntity();
@@ -28,7 +32,6 @@ public class EntitiyConverter {
             sms = filterLogic.removeBackSlashR(sms);
             sms = filterLogic.removeTab(sms);
             solrEntity.setSms(sms);
-
             solrEntity.setCorrelationId(messageHistory.getCorrelationId());
             solrEntity.setDatetime(receive_date);
             solrEntity.setTermCount(getTermsCount(messageHistory.getMessage()));

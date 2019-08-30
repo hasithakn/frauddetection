@@ -25,7 +25,7 @@ public class SearchLogics {
             String core
     ) throws IOException, SolrServerException {
         int start = 0;
-        final int batch = 10;
+        final int batch = 1;
         QueryResponse reader = searchDateRange(q, dateRangeAS_fq, df, 0, batch, core);
         return reader;
     }
@@ -38,7 +38,7 @@ public class SearchLogics {
             String core
     ) throws IOException, SolrServerException {
         int start = 0;
-        final int batch = 10;
+        final int batch = 1;
         QueryResponse reader = searchDateRangeDismax(q, dateRangeAS_fq, df, 0, batch, mm, core);
         return reader;
     }

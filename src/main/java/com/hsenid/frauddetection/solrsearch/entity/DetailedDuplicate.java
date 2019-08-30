@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.sql.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(schema = "DetailedDuplicate")
@@ -31,13 +32,13 @@ public class DetailedDuplicate {
     private String Details;
 
     @Column(name = "date")
-    private Date Date;
+    private LocalDate Date;
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return Date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         Date = date;
     }
 

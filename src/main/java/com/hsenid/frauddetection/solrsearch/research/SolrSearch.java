@@ -19,9 +19,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
-import java.sql.Date;
-import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -48,7 +48,6 @@ public class SolrSearch {
     @Value("${solrsearch.noOfThreads}")
     private int noOfThreads;
 
-    private static Subject subject = new Subject();
 
     private static ArrayList<String> appIdFilter = new ArrayList<>();
     private static ArrayList<DetailedDuplicate> detailedDuplicates = new ArrayList<>();
@@ -57,18 +56,22 @@ public class SolrSearch {
     private SearchingMethods SM;
 
     @Autowired
+    private Subject subject ;
+
+    @Autowired
     private SolrEntityRepository solrEntityRepository;
 
     private static String D1 = "";
     private static String D7 = "";
     private static String D30 = "";
+    private static LocalDate date;
 
-    public void run(Timestamp timestamp) throws InterruptedException {
 
+    public void run(LocalDateTime localDateTime) throws InterruptedException {
         //timestamp = day of msgs to process
 
+        date = localDateTime.toLocalDate();
         LOGGER.info("solr searching start");
-        new DBObserver(subject);
 
         try {
             appIdFilter = FileIO.getAppids(APP_ID_PATH);
@@ -76,19 +79,14 @@ public class SolrSearch {
             LOGGER.error("File not found");
         }
 
-        Timestamp timestampPlusOne = Timestamp.valueOf(
-                timestamp.toLocalDateTime()
-                        .toLocalDate()
-                        .plusDays(1)
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00"
-        );
+        LocalDateTime localDateTimePlusOne = localDateTime.plusDays(1);
 
-        setDateVariables(timestamp);
+        setDateVariables(localDateTime);
 
-        List<SolrEntity> solrEntities = getSolrEntitiesByDateRange(
-                TimeFunctions.timestampToISOWithOutUTC(timestamp),
-                TimeFunctions.timestampToISOWithOutUTC(timestampPlusOne)
-        );
+        String strDay = DateTimeFormatter.ISO_INSTANT.format(localDateTime.toInstant(ZoneOffset.UTC));
+        String strDayPlusOne = DateTimeFormatter.ISO_INSTANT.format(localDateTimePlusOne.toInstant(ZoneOffset.UTC));
+
+        List<SolrEntity> solrEntities = getSolrEntitiesByDateRange(strDay, strDayPlusOne);
 
         Thread[] ts = getThreads(solrEntities, noOfThreads);
 
@@ -105,21 +103,18 @@ public class SolrSearch {
         subject.setDBRows(detailedDuplicates);
     }
 
-    private void setDateVariables(Timestamp timestamp) {
-        LocalDate temp = timestamp.toLocalDateTime().toLocalDate();
-        Timestamp tempTimestamp = Timestamp.valueOf(temp.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00");
-        D1 = TimeFunctions.timestampToISOWithOutUTC(tempTimestamp);
+    private void setDateVariables(LocalDateTime localDateTime) {
+        String temp = DateTimeFormatter.ISO_INSTANT.format(localDateTime.toInstant(ZoneOffset.UTC));
+        D1 = temp;
         LOGGER.info("D1 is set to : " + D1);
 
-        temp = timestamp.toLocalDateTime().toLocalDate().minusDays(7);
-        tempTimestamp = Timestamp.valueOf(temp.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00");
-        D7 = TimeFunctions.timestampToISOWithOutUTC(tempTimestamp);
-        LOGGER.info("D7 is set to : " + D7);
+        temp = DateTimeFormatter.ISO_INSTANT.format(localDateTime.minusDays(7).toInstant(ZoneOffset.UTC));
+        D7 = temp;
+        LOGGER.info("D1 is set to : " + D7);
 
-        temp = timestamp.toLocalDateTime().toLocalDate().minusDays(30);
-        tempTimestamp = Timestamp.valueOf(temp.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 00:00:00");
-        D30 = TimeFunctions.timestampToISOWithOutUTC(tempTimestamp);
-        LOGGER.info("D30 is set to : " + D30);
+        temp = DateTimeFormatter.ISO_INSTANT.format(localDateTime.minusDays(30).toInstant(ZoneOffset.UTC));
+        D30 = temp;
+        LOGGER.info("D1 is set to : " + D30);
     }
 
     private Thread[] getThreads(List<SolrEntity> solrEntities, int noOfThreads) {
@@ -145,12 +140,12 @@ public class SolrSearch {
         return ts;
     }
 
-    private List<SolrEntity> getSolrEntitiesByDateRange(String dateFrom, String dateTo) {
+    public List<SolrEntity> getSolrEntitiesByDateRange(String dateFrom, String dateTo) {
         int start = 0;
         List<SolrEntity> solrEntities = new LinkedList<>();
         Page<SolrEntity> allByDatetimeBetween;
         do {
-            allByDatetimeBetween = solrEntityRepository.findAllByDatetimeBetween(
+            allByDatetimeBetween = solrEntityRepository.findAllByDatetimeBetweenOrderByDatetime(
                     dateFrom,
                     dateTo,
                     PageRequest.of(start, batch));
@@ -185,27 +180,15 @@ public class SolrSearch {
 
                 String s = TimeFunctions.addTimeFilterDateXTillDocTime(a, D1);
                 QueryResponse response = SM.searchForDuplicatesD101D102(a, s, CORE);
-                List<String> d1List = response.getResults().stream()
-                        .map(e -> e.getFieldValue("correlationId").toString())
-                        .collect(Collectors.toList());
                 d1 = (int) response.getResults().getNumFound();
-                details.put("d1", d1List);
 
                 s = TimeFunctions.getDateTimeWithXY(D7, D1);
                 response = SM.searchForDuplicatesD101D102(a, s, CORE);
-                List<String> d7List = response.getResults().stream()
-                        .map(e -> e.getFieldValue("correlationId").toString())
-                        .collect(Collectors.toList());
                 d7 = (int) response.getResults().getNumFound();
-                details.put("d7", d7List);
 
                 s = TimeFunctions.getDateTimeWithXY(D30, D7);
                 response = SM.searchForDuplicatesD101D102(a, s, CORE);
-                List<String> d30List = response.getResults().stream()
-                        .map(e -> e.getFieldValue("correlationId").toString())
-                        .collect(Collectors.toList());
                 d30 = (int) response.getResults().getNumFound();
-                details.put("d30", d30List);
 
                 DetailedDuplicate detailedDuplicate = new DetailedDuplicate();
                 detailedDuplicate.setAppID(a.getApp_id());
@@ -213,10 +196,9 @@ public class SolrSearch {
                 detailedDuplicate.setD1(d1);
                 detailedDuplicate.setD7(d7);
                 detailedDuplicate.setD30(d30);
-                Date date = new Date(a.getDatetime().getTime());
                 detailedDuplicate.setDate(date);
-                detailedDuplicate.setDetails(details.toString());
                 detailedDuplicates.add(detailedDuplicate);
+
                 LOGGER.info(detailedDuplicate.getCorrelationId() + " -- " + d1 + " : " + d7 + " : " + d30);
             } catch (Exception e) {
                 LOGGER.error(e.getStackTrace()[0].toString());

@@ -6,6 +6,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table
@@ -27,7 +29,7 @@ public class MessageHistory implements Serializable {
     @Column(
             name = "receiveDate"
     )
-    private Timestamp receiveDate;
+    private LocalDateTime receiveDate;
 
     public MessageHistory() {
     }
@@ -56,11 +58,11 @@ public class MessageHistory implements Serializable {
         this.correlationId = correlationId;
     }
 
-    public Timestamp getReceiveDate() {
+    public LocalDateTime getReceiveDate() {
         return this.receiveDate;
     }
 
-    public void setReceiveDate(Timestamp receiveDate) {
+    public void setReceiveDate(LocalDateTime receiveDate) {
         this.receiveDate = receiveDate;
     }
 }
