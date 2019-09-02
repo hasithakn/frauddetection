@@ -1,0 +1,20 @@
+@startuml
+
+title Solr Search Diagram
+
+(*) --> "Check for finished solr_index_dates, if not searched then"
+--> "Search for the messages in that day in SOLR DB"
+--> "Get Thread count and start Threads"
+"Get Thread count and start Threads" --> "Thread 1"
+"Get Thread count and start Threads" --> "Thread 2"
+"Get Thread count and start Threads" --> "Thread 3"
+"Get Thread count and start Threads" --> "Thread .."
+"Thread 1" --> "Join"
+"Thread 2" --> "Join"
+"Thread 3" --> "Join"
+"Thread .." --> "Join"
+"Join" --> "call DBObserver to store detailed duplicates to DB"
+--> "Update solr_search_details as FINISHED"
+-->(*)
+
+@enduml

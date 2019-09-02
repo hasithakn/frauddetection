@@ -1,0 +1,50 @@
+@startuml
+
+title Highlevel
+
+(*) --> "SOLR INDEXER"
+"Main message DB" --> "SOLR INDEXER"
+"SOLR database"-up-> "SOLR INDEXER"
+"SOLR database"--> "SOLR Searcher"
+"SOLR INDEXER" -right-> "SOLR index details"
+note right 
+Status
+Date
+current_doc
+end note
+"SOLR Searcher" -right->"SOLR search details"
+note right 
+Status
+Date
+current_doc
+end note 
+"SOLR Searcher" -left-> "Detailed duplicate DB"
+note left 
+correlation_id
+d1
+d7
+d30
+app_id
+date
+end note
+"SOLR index details" --> "SOLR Searcher"
+"SOLR search details" --> "Daily sata analysis and storing" 
+"Weights input" -left-> "Daily sata analysis and storing"
+"input"-->"Weights input"
+note right
+correlation_id
+d1 weight input
+d7 weight input
+d30 weight input
+end note
+"Daily sata analysis and storing" -left-> "daily analysisi summery DB"
+note left
+id
+duplicateScore
+date
+app_id
+end note
+
+"Daily sata analysis and storing"--> (*)
+
+@enduml

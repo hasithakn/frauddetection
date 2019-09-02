@@ -1,0 +1,18 @@
+@startuml
+
+title Thread
+
+(*) -->"Get SOLR Entities to search for duplicates" 
+--> "filter by subscriber appId list"
+"filter by subscriber appId list" --> [for each] "Search for D1 (previous 1 day duplicates)"
+"Search for D1 (previous 1 day duplicates)" --> "Search for D7 (previous 7 day duplicates)"
+"Search for D7 (previous 7 day duplicates)" --> "Search for D30 (previous 30 day duplicates)"
+--> "Collect D1,D7,D30 with date and cache it to shared variable"
+
+If "is last index? " then
+--> [Yes] (*)
+else
+--> "Search for D1 (previous 1 day duplicates)"
+Endif
+
+@enduml
