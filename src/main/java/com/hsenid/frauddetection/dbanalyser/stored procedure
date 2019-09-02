@@ -1,0 +1,33 @@
+CREATE PROCEDURE demo(
+	IN d1_weight INT,
+	IN d7_weight INT,
+	IN d30_weight INT,
+	IN dateToProcess date
+)
+BEGIN
+	DECLARE done INT DEFAULT FALSE;
+	DECLARE app_id varchar(255);
+	DECLARE b, c INT;
+	DECLARE cur1 CURSOR FOR select distinct app_id from detailed_duplicate where date = dateToProcess;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+	open cur1;
+        LOOP1: loop
+		fetch cur1
+		into  app_id;
+		if done then
+			close cur1;
+			leave LOOP1;
+		end if;
+
+        //todo
+
+		select
+		app_id,
+		sum(((d1*1)+(d7*1)+(d30*1))) as score,
+		date
+		from detailed_duplicate
+		where app_id=app_id and date = dateToProcess;
+
+        end loop LOOP1;
+END;

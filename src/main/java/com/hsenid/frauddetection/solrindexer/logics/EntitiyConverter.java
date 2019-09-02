@@ -2,13 +2,10 @@ package com.hsenid.frauddetection.solrindexer.logics;
 
 import com.hsenid.frauddetection.solrindexer.entity.MessageHistory;
 import com.hsenid.frauddetection.solrindexer.entity.SolrEntity;
-import com.hsenid.frauddetection.solrsearch.functions.TimeFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.StringTokenizer;
 

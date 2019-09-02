@@ -6,6 +6,8 @@ import com.hsenid.frauddetection.solrindexer.repository.SolrIndexDetailRepositor
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,13 +18,16 @@ public class App {
 
     private static Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-    @Autowired
     private SolrIndexDetailRepository solrIndexDetailRepository;
-
-    @Autowired
     private Indexer indexer;
 
-//    @Scheduled(fixedDelay = 1000 * 60)
+    @Autowired
+    public App(SolrIndexDetailRepository solrIndexDetailRepository, Indexer indexer) {
+        this.solrIndexDetailRepository = solrIndexDetailRepository;
+        this.indexer = indexer;
+    }
+
+    @Scheduled(fixedDelayString ="${solr.indexer.schedule.time}")
     public void run() {
 
         //todo check another db and if ok then index  day.

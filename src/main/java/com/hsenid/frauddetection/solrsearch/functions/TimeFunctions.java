@@ -25,24 +25,6 @@ public class TimeFunctions {
         }
     }
 
-//    public static String ISODateStringToLocalDate(String date) {
-//        try {
-//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-//            LocalDateTime t = LocalDateTime.parse(date, formatter);
-//            Instant instant = t.toInstant(ZoneOffset.UTC);
-//            Date from = Date.from(instant);
-////            int year = t.getYear();
-////            int month= t.getMonthValue();
-////            int day = t.getDayOfMonth();
-////            int hour = t.getHour();
-////            int min = t.getMinute();
-////            int sec = t.getSecond();
-////            Date date1 = new Date(Date.UTC(year,month,day,hour,min,sec));
-//            return "";
-//        } catch (Exception e) {
-//            return "";
-//        }
-//    }
 
     public static String timestampToISOWithOutUTC(Date date) {
         try {

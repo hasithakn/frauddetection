@@ -67,6 +67,7 @@ public class SolrSearch {
     private static LocalDate date;
 
 
+
     public void run(LocalDateTime localDateTime) throws InterruptedException {
         //timestamp = day of msgs to process
 
