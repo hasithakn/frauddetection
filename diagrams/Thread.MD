@@ -1,4 +1,4 @@
-@startuml
+```plantuml
 
 title Thread
 
@@ -15,4 +15,4 @@ else
 --> "Search for D1 (previous 1 day duplicates)"
 Endif
 
-@enduml
+```

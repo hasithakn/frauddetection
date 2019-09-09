@@ -1,4 +1,4 @@
-@startuml
+```plantuml
 
 title Solr Indexing
 
@@ -27,4 +27,4 @@ else
 endif
 "Update solr_index_details rwo with \n current_doc = current_doc +batch " --> "Get batchSize and currentDoc"
 
-@enduml
+```

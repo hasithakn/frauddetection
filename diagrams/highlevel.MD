@@ -1,5 +1,4 @@
-@startuml
-
+```plantuml
 title Highlevel
 
 [SOLR INDEXER]
@@ -11,6 +10,7 @@ folder "Main message DB" {
 	[message_history]
   }
 }
+
 
 database "SOLR" {
 folder "solr core" {
@@ -80,5 +80,4 @@ end note
 [DB SUMMARY] --> [daily_analysis_summery]
 
 
-
-@enduml
+```

@@ -1,4 +1,4 @@
-@startuml
+```plantuml
 
 title Solr Search Diagram
 
@@ -17,4 +17,4 @@ title Solr Search Diagram
 --> "Update solr_search_details as FINISHED"
 -->(*)
 
-@enduml
+```
