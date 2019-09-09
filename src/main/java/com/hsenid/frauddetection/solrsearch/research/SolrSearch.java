@@ -6,10 +6,8 @@ import com.hsenid.frauddetection.solrsearch.entity.DetailedDuplicate;
 import com.hsenid.frauddetection.solrsearch.fileio.FileIO;
 import com.hsenid.frauddetection.solrsearch.functions.SearchingMethods;
 import com.hsenid.frauddetection.solrsearch.functions.TimeFunctions;
-import com.hsenid.frauddetection.solrsearch.observer.DBObserver;
 import com.hsenid.frauddetection.solrsearch.subject.Subject;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,7 +175,6 @@ public class SolrSearch {
                 int d1 = 0;
                 int d7 = 0;
                 int d30 = 0;
-                JSONObject details = new JSONObject();
 
                 String s = TimeFunctions.addTimeFilterDateXTillDocTime(a, D1);
                 QueryResponse response = SM.searchForDuplicatesD101D102(a, s, CORE);
